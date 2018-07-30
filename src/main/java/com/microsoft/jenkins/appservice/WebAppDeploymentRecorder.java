@@ -18,12 +18,7 @@ import com.microsoft.jenkins.appservice.util.AzureUtils;
 import com.microsoft.jenkins.appservice.util.Constants;
 import com.microsoft.jenkins.appservice.util.WebAppUtils;
 import com.microsoft.jenkins.exceptions.AzureCloudException;
-import hudson.AbortException;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
+import hudson.*;
 import hudson.model.Item;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -52,6 +47,7 @@ import java.util.Collections;
 public class WebAppDeploymentRecorder extends BaseDeploymentRecorder {
 
     private String publishType;
+    private String fileType;
     private String dockerImageName;
     private String dockerImageTag;
     private String dockerFilePath;
@@ -76,6 +72,11 @@ public class WebAppDeploymentRecorder extends BaseDeploymentRecorder {
     @DataBoundSetter
     public void setPublishType(final String publishType) {
         this.publishType = publishType;
+    }
+
+    @DataBoundSetter
+    public void setFileType(final String fileType) {
+        this.fileType = fileType;
     }
 
     @DataBoundSetter
@@ -122,6 +123,10 @@ public class WebAppDeploymentRecorder extends BaseDeploymentRecorder {
 
     public String getPublishType() {
         return publishType;
+    }
+
+    public String getFileType() {
+        return fileType;
     }
 
     public String getDockerFilePath() {
@@ -187,6 +192,7 @@ public class WebAppDeploymentRecorder extends BaseDeploymentRecorder {
         commandContext.setSourceDirectory(envVars.expand(getSourceDirectory()));
         commandContext.setTargetDirectory(envVars.expand(getTargetDirectory()));
         commandContext.setSlotName(envVars.expand(slotName));
+        commandContext.setFileType(fileType);
         commandContext.setPublishType(publishType);
         commandContext.setDockerBuildInfo(dockerBuildInfo);
         commandContext.setDeleteTempImage(deleteTempImage);
@@ -323,6 +329,12 @@ public class WebAppDeploymentRecorder extends BaseDeploymentRecorder {
             } else {
                 return new ListBoxModel(new ListBoxModel.Option(Constants.EMPTY_SELECTION, ""));
             }
+        }
+
+        public ListBoxModel doFillFileTypeItems() {
+            return new ListBoxModel(
+                    new ListBoxModel.Option(Constants.ZIP_FILE_EXTENSION, Constants.ZIP_FILE_EXTENSION),
+                    new ListBoxModel.Option(Constants.WAR_FILE_EXTENSION, Constants.WAR_FILE_EXTENSION));
         }
 
         public FormValidation doVerifyConfiguration(@AncestorInPath Item owner,

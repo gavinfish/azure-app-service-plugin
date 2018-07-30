@@ -19,26 +19,32 @@ import hudson.Util;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class WarDeployCommand implements ICommand<WarDeployCommand.IWarDeployCommandData> {
+public class FileDeployCommand implements ICommand<FileDeployCommand.IWarDeployCommandData> {
 
     @Override
     public void execute(IWarDeployCommandData context) {
         WebApp app = context.getWebApp();
+        String fileExtension = context.getFileType();
 
         FilePath srcDir = context.getJobContext().getWorkspace().child(Util.fixNull(context.getSourceDirectory()));
         try {
             FilePath[] files = srcDir.list(Util.fixNull(context.getFilePath()));
 
             for (FilePath file : files) {
-                if (!file.getName().toLowerCase().endsWith("war")) {
-                    context.logStatus(file.getName() + " is not WAR file. Will skip.");
+                if (!file.getName().toLowerCase().endsWith(fileExtension)) {
+                    context.logStatus(String.format("%s is not %s file. Will skip.", file.getName(),
+                            fileExtension.toUpperCase()));
                     continue;
                 }
 
                 context.logStatus("Deploy to app " + file.getBaseName() + " using file: " + file.getRemote());
 
                 try (InputStream stream = file.read()) {
-                    app.warDeploy(stream, file.getBaseName());
+                    if (fileExtension.equals(Constants.ZIP_FILE_EXTENSION)) {
+                        app.zipDeploy(stream);
+                    } else {
+                        app.warDeploy(stream, file.getBaseName());
+                    }
                 }
             }
 
@@ -60,6 +66,7 @@ public class WarDeployCommand implements ICommand<WarDeployCommand.IWarDeployCom
     }
 
     public interface IWarDeployCommandData extends IBaseCommandData {
+        String getFileType();
 
         String getFilePath();
 

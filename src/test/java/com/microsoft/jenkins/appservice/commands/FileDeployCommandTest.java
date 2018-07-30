@@ -24,7 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class WarDeployCommandTest {
+public class FileDeployCommandTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -41,14 +41,14 @@ public class WarDeployCommandTest {
         TaskListener listener = mock(TaskListener.class);
         JobContext jobContext = new JobContext(run, workspace, launcher, listener);
 
-        WarDeployCommand.IWarDeployCommandData context = mock(WarDeployCommand.IWarDeployCommandData.class);
+        FileDeployCommand.IWarDeployCommandData context = mock(FileDeployCommand.IWarDeployCommandData.class);
         when(context.getJobContext()).thenReturn(jobContext);
         when(context.getSourceDirectory()).thenReturn("");
         WebApp app = mock(WebApp.class);
         when(context.getWebApp()).thenReturn(app);
         when(context.getFilePath()).thenReturn("*.war");
 
-        WarDeployCommand command = new WarDeployCommand();
+        FileDeployCommand command = new FileDeployCommand();
         command.execute(context);
 
         verify(app).warDeploy(any(InputStream.class), eq("ROOT"));
